@@ -1,0 +1,35 @@
+{
+  "name": "booking",
+  "version": "1.0.0",
+  "description": "Build a Complete App with GraphQL, Node.js, MongoDB and React.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mahsn/booking.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "Nodejs",
+    "MongoDB",
+    "Reactjs"
+  ],
+  "author": "mahsn aty",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mahsn/booking/issues"
+  },
+  "homepage": "https://github.com/mahsn/booking#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-graphql": "^0.8.0",
+    "graphql": "^14.4.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
