@@ -4,8 +4,10 @@ const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose  = require('mongoose');
+const MongoClient = require('mongodb').MongoClient;
 
 const Event = require('./models/event');
+const User = require('./models/user');
 const app = express();
 
 app.use(bodyParser.json());
@@ -22,6 +24,17 @@ app.use(
             date: String!
 
         }
+        
+        type User {
+          _id:ID!,
+          email: String!,
+          password: String!
+        }
+
+        input UserInput {
+          email: String!,
+          password: String!
+        }
 
         input  EventInput {
            title: String!
@@ -33,9 +46,12 @@ app.use(
         type RootQuery {
             events: [String!]!
         }
+
         type RootMutation {
             createEvent(eventInput: EventInput): Event
-        }
+            createUser(userInput: UserInput): User
+          }
+
         schema {
             query: RootQuery
             mutation: RootMutation
@@ -43,16 +59,17 @@ app.use(
     `),
     rootValue: {
       events: () => {
-        return events;
+        Event.find()
+        .then(events => {
+          return events.map(event => {
+            return {...event._doc, _id: event.id };
+          });
+        }).catch(err => {
+          console.log(err);
+        });
+
       },
       createEvent: args => {
-        // const event = {
-        //     _id: Math.random().toString(),
-        //     title: args.eventInput.title,
-        //     description: args.eventInput.description,
-        //     price: +args.eventInput.price,
-        //     date: args.eventInput.date
-        // };
         const event = new Event({
             title: args.eventInput.title,
             description: args.eventInput.description,
@@ -60,14 +77,28 @@ app.use(
             date: new Date(args.eventInput.date)
 
         });
-        event.save()
+        return event.save()
         .then(result => {
-          return {...result._doc};
+          return {...result._doc, _id: event.id};
         })
         .catch(err => {
           console.log(err);
+          throw err;
         })
-        return event;
+      },
+      createUser: args => {
+        const user = new User({
+          email : args.userInput.email,
+          password : args.userInput.password
+        });
+        return user.save()
+          .then(result => {
+            return {...result._doc, _id: user.id}
+          })
+          .catch(err => {
+             console.log(err);
+             throw err; 
+          });
       }
     },
     graphiql: true
@@ -77,9 +108,9 @@ app.use(
 mongoose.connect(
   `mongodb+srv://${process.env.MONGO_USER}:
     ${process.env.MONGO_PASSWORD}
-    @cluster0-ls4m0.gcp.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`)
-  .then(() => {
-    app.listen(3000);
+    @cluster0-ls4m0.gcp.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`
+    ).then(() => {
+     app.listen(3000);
   })
   .catch(err => {
     console.log(err);
